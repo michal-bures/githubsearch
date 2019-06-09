@@ -1,0 +1,14 @@
+<html>
+<body>
+<h1>How2use</h1>
+<form action="" method="get">
+    <p>Results for "{{.SearchString}}":</p>
+
+    <ul>
+        {{range .Results}}
+            <li>{{ . }}</li>
+        {{end}}
+    </ul>
+</form>
+</body>
+</html>
