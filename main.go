@@ -11,18 +11,15 @@ import "net/http"
 
 func main() {
 	loadEnvVariablesFromEnvFile()
-	searchEngine := searcher.NewSearcher()
-	controller := controller.NewController(searchEngine)
+	searcher := searcher.NewSearcher()
+	controller := controller.NewController(searcher)
 	startHttpServer(controller)
 }
 
 func startHttpServer(controller *controller.Controller) {
 	http.HandleFunc("/", controller.IndexPageHandler)
 
-	//	fs := http.FileServer(http.Dir("static/"))
-	//	http.Handle("/static/", http.StripPrefix("/static/", fs))
-
-	fmt.Print("Starting server")
+	fmt.Print("Listening on port 8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("Failed to start server", err)

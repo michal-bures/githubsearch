@@ -5,6 +5,7 @@ import (
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 	"os"
+	"strings"
 )
 
 var accessTokenEnvVariable = "GITHUB_API_ACCESS_TOKEN"
@@ -13,17 +14,17 @@ type GithubSearcher struct {
 	Client *github.Client
 }
 
-func (engine GithubSearcher) Search(keyword string, language string) (*[]github.CodeResult, error) {
+func (engine GithubSearcher) Search(ctx context.Context, keyword string, language string) (*[]github.CodeResult, error) {
 	c := engine.Client
 	options := &github.SearchOptions{
 		TextMatch: true,
 		ListOptions: github.ListOptions{
 			Page:    1,
-			PerPage: 100,
+			PerPage: 500,
 		},
 	}
 
-	result, _, err := c.Search.Code(context.Background(), keyword+" language:"+language, options)
+	result, _, err := c.Search.Code(context.Background(), sanitizeSearchString(keyword)+" language:"+language, options)
 
 	if err != nil {
 		return nil, err
@@ -51,4 +52,8 @@ func initGithubClient() *github.Client {
 	tc := oauth2.NewClient(ctx, ts)
 
 	return github.NewClient(tc)
+}
+
+func sanitizeSearchString(keywords string) string {
+	return `"` + strings.Replace(keywords, `"`, `\\"`, -1) + `"`
 }

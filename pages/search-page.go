@@ -1,4 +1,4 @@
-package controller
+package pages
 
 import (
 	"html/template"
@@ -21,9 +21,9 @@ type SearchPageData struct {
 	Results        []SearchResult
 }
 
-var searchPageTemplate = template.Must(template.ParseFiles("templates/search-page.html"))
+var searchPageTemplate = template.Must(template.ParseFiles("pages/search-page.html"))
 
-func SearchPage(w http.ResponseWriter, params SearchPageData) {
+func SearchPage(w http.ResponseWriter, errorHandler func(e error), params SearchPageData) {
 	err := searchPageTemplate.Execute(w, params)
-	handleError(w, err)
+	errorHandler(err)
 }

@@ -1,13 +1,16 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
+	"githubsearch/pages"
 	"githubsearch/refiners"
 	"githubsearch/searcher"
 	"log"
 	"net/http"
+	"time"
 )
 
 type Controller struct {
@@ -17,13 +20,19 @@ type Controller struct {
 func (c Controller) IndexPageHandler(w http.ResponseWriter, r *http.Request) {
 	keyword := getQueryParam(r, "search")
 	language := getQueryParam(r, "language")
+	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	defer cancel()
+
+	errorHandler:= func(e error) {
+		handleError(w, e)
+	}
 
 	if keyword == "" {
-		SearchPage(w, SearchPageData{
+		pages.SearchPage(w, errorHandler, pages.SearchPageData{
 			ShowResults: false,
 		})
 	} else {
-		results, err := c.searcher.Search(keyword, language)
+		results, err := c.searcher.Search(ctx, keyword, language)
 		handleError(w, err)
 
 		pipeline := [...]refiners.SearchResultsRefiner{
@@ -32,10 +41,10 @@ func (c Controller) IndexPageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, refinement := range pipeline {
-			results = refinement.Apply(results)
+			results = refinement.Apply(ctx, results)
 		}
 
-		SearchPage(w, SearchPageData{
+		pages.SearchPage(w, errorHandler, pages.SearchPageData{
 			ShowResults:    true,
 			SearchLanguage: language,
 			SearchString:   r.URL.Query()["search"][0],
@@ -52,13 +61,13 @@ func handleError(w http.ResponseWriter, e error) {
 	}
 }
 
-func convertResults(codeResults *[]github.CodeResult) []SearchResult {
-	searchResults := make([]SearchResult, len(*codeResults))
+func convertResults(codeResults *[]github.CodeResult) []pages.SearchResult {
+	searchResults := make([]pages.SearchResult, len(*codeResults))
 
-	fmt.Printf("Total results: %d", len(*codeResults))
+	fmt.Printf("Total results: %d\n", len(*codeResults))
 
 	for i, codeResult := range *codeResults {
-		searchResults[i] = SearchResult{
+		searchResults[i] = pages.SearchResult{
 			Name:       codeResult.Name,
 			Path:       codeResult.Path,
 			FileUrl:    codeResult.HTMLURL,
