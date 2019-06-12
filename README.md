@@ -6,8 +6,7 @@ Features:
  * Unlike the raw GitHub API, it sort of emulates ability to search for special characters and exact phrases (you can even use wildcards, such as `moment(*).tz(*)`). 
  It does this by fetching first 500 results from the GitHub API and then manually filtering out any that don't actually contain 
  an exact match with the searched pattern.  
- * As a second step, it orderes the returned matches by how many watchers (stars) their repository has, starting with the most popular. 
- The reasoning is that more popular repositories are more likely to contain relevant code examples. 
+ * As a second refinement, it orders the returned matches by how many watchers (stars) their repository has, starting with the most popular. The reasoning is that more popular repositories are more likely to contain relevant code examples. 
 
 It uses:
 
