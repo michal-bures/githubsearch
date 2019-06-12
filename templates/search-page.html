@@ -1,0 +1,41 @@
+<html>
+<body>
+<h1>Github exact search</h1>
+<form action="" method="get">
+    <p>Search for
+        <input name="search" value="{{ .SearchString }}"/> in
+        <select name="language" value="{{ .SearchLanguage }}">
+            <option value="js">Javascript</option>
+            <option value="ts">Typescript</option>
+            <option value="go">Go</option>
+        </select>
+        <input type="submit" value="Vyhledat"></input></p>
+</form>
+
+{{ if .ShowResults }}
+
+<hr/>
+
+<form action="" method="get">
+    <p>Results for "{{.SearchString}}":</p>
+
+    {{ if .Results }}
+
+    <ul>
+        {{range .Results}}
+        <li>
+            {{ .Repository }}: {{ .Name }} (<a href="{{ .FileUrl }}">{{ .Path }}</a>)
+            {{ range .Fragments }}
+                <pre>{{ . }}</pre>
+            {{end}}
+        </li>
+        {{end}}
+    </ul>
+    {{ else }}
+        No results, sorry!
+    {{ end }}
+</form>
+
+{{end}}
+</body>
+</html>

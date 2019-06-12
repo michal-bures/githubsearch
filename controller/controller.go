@@ -2,58 +2,91 @@ package controller
 
 import (
 	"fmt"
-	"github-search/searcher"
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
-	"html/template"
+	"githubsearch/refiners"
+	"githubsearch/searcher"
 	"log"
 	"net/http"
 )
 
 type Controller struct {
-	searchEngine searcher.Searcher
+	searcher *searcher.GithubSearcher
 }
 
-var resultsTemplate = template.Must(template.ParseFiles("templates/results.html"))
-var searchPageTemplate = template.Must(template.ParseFiles("templates/search-form.html"))
+func (c Controller) IndexPageHandler(w http.ResponseWriter, r *http.Request) {
+	keyword := getQueryParam(r, "search")
+	language := getQueryParam(r, "language")
 
-func (c *Controller) IndexPageHandler(w http.ResponseWriter, r *http.Request) {
-	keywords := r.URL.Query()["search"]
-	if keywords == nil {
-		SearchFormPage(w)
+	if keyword == "" {
+		SearchPage(w, SearchPageData{
+			ShowResults: false,
+		})
 	} else {
-		results, err := c.searchEngine.Search(keywords[0])
+		results, err := c.searcher.Search(keyword, language)
 		handleError(w, err)
 
-		ResultsPage(w, ResultsPageData{
-			SearchString: r.URL.Query()["search"][0],
-			Results:      resultsToString(results),
+		pipeline := [...]refiners.SearchResultsRefiner{
+			refiners.MatchPattern{Pattern: keyword},
+			refiners.SortByRepositoryScore{MaxRequests: 20, Client: (*c.searcher).Client},
+		}
+
+		for _, refinement := range pipeline {
+			results = refinement.Apply(results)
+		}
+
+		SearchPage(w, SearchPageData{
+			ShowResults:    true,
+			SearchLanguage: language,
+			SearchString:   r.URL.Query()["search"][0],
+			Results:        convertResults(results),
 		})
 	}
 }
 
 func handleError(w http.ResponseWriter, e error) {
 	if e != nil {
-		log.Fatal(errors.WithStack(e))
+		log.Print(errors.WithStack(e))
 		w.WriteHeader(500)
 		fmt.Fprint(w, "Oops, something went wrong")
 	}
 }
 
-func resultsToString(codeResults []github.CodeResult) []string {
-	searchResults := make([]string, len(codeResults))
+func convertResults(codeResults *[]github.CodeResult) []SearchResult {
+	searchResults := make([]SearchResult, len(*codeResults))
 
-	fmt.Printf("Total results: %d", len(codeResults))
-	fmt.Printf("%+v\n", codeResults[0])
+	fmt.Printf("Total results: %d", len(*codeResults))
 
-	for i, codeResult := range codeResults {
-		searchResults[i] = *codeResult.Repository.Name
+	for i, codeResult := range *codeResults {
+		searchResults[i] = SearchResult{
+			Name:       codeResult.Name,
+			Path:       codeResult.Path,
+			FileUrl:    codeResult.HTMLURL,
+			Repository: codeResult.Repository.Name,
+			Fragments:  getFragments(codeResult.TextMatches),
+		}
 	}
 	return searchResults
 }
 
-func NewController(searchEngine searcher.Searcher) *Controller {
-	return &Controller{
-		searchEngine: searchEngine,
+func getFragments(matches []github.TextMatch) []*string {
+	fragments := make([]*string, len(matches))
+	for i, match := range matches {
+		fragments[i] = match.Fragment
 	}
+	return fragments
+}
+
+func NewController(searcher *searcher.GithubSearcher) *Controller {
+	return &Controller{
+		searcher: searcher,
+	}
+}
+
+func getQueryParam(r *http.Request, name string) string {
+	values := r.URL.Query()[name]
+	if values == nil {
+		return ""
+	}
+	return values[0]
 }

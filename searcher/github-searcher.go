@@ -10,11 +10,11 @@ import (
 var accessTokenEnvVariable = "GITHUB_API_ACCESS_TOKEN"
 
 type GithubSearcher struct {
-	client *github.Client
+	Client *github.Client
 }
 
-func (engine GithubSearcher) Search(keyword string) ([]github.CodeResult, error) {
-	c := engine.client
+func (engine GithubSearcher) Search(keyword string, language string) (*[]github.CodeResult, error) {
+	c := engine.Client
 	options := &github.SearchOptions{
 		TextMatch: true,
 		ListOptions: github.ListOptions{
@@ -23,18 +23,18 @@ func (engine GithubSearcher) Search(keyword string) ([]github.CodeResult, error)
 		},
 	}
 
-	result, _, err := c.Search.Code(context.Background(), keyword, options)
+	result, _, err := c.Search.Code(context.Background(), keyword+" language:"+language, options)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return result.CodeResults, nil
+	return &result.CodeResults, nil
 }
 
-func NewSearcher() Searcher {
+func NewSearcher() *GithubSearcher {
 	return &GithubSearcher{
-		client: initGithubClient(),
+		Client: initGithubClient(),
 	}
 }
 

@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github-search/controller"
-	"github-search/searcher"
 	"github.com/joho/godotenv"
+	"githubsearch/controller"
+	"githubsearch/searcher"
 	"log"
 )
 import "net/http"

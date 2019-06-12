@@ -5,5 +5,5 @@ import (
 )
 
 type Searcher interface {
-	Search(keywords string) ([]github.CodeResult, error)
+	Search(query string, language string) (*[]github.CodeResult, error)
 }
