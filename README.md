@@ -1,6 +1,5 @@
 # Github Exact Search
-A small wrapper on top of the GitHub code search API that allows you to search for specific code fragments across all 
-public repositories on GitHub.
+A simple web application built on top of the GitHub code search API that allows you to search for specific code fragments across all public repositories on GitHub.
 
 Features:
  * Unlike the raw GitHub API, it sort of emulates ability to search for special characters and exact phrases (you can even use wildcards, such as `moment(*).tz(*)`). 
