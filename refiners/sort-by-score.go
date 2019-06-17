@@ -14,7 +14,7 @@ type SortByRepositoryScore struct {
 
 //sorts results based on repository score
 func (s SortByRepositoryScore) Apply(ctx context.Context, results *[]github.CodeResult) *[]github.CodeResult {
-	numberOfScoredResults := smallerOf(s.MaxRequests, len(*results))
+	numberOfScoredResults := smaller(s.MaxRequests, len(*results))
 
 	scores := make([]int, numberOfScoredResults)
 
@@ -43,12 +43,12 @@ func (s SortByRepositoryScore) getRepositoryScore(ctx context.Context, repo *git
 		return 0
 	}
 
-	score := (*repository).GetWatchersCount()
+	score := repository.GetWatchersCount() //TODO get actually already returns a pointer, so there's no need for it here
 
 	return score
 }
 
-func smallerOf(int1 int, int2 int) int {
+func smaller(int1 int, int2 int) int {
 	if int1 <= int2 {
 		return int1
 	}
