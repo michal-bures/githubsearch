@@ -66,7 +66,7 @@ func convertResults(codeResults *[]github.CodeResult) []pages.SearchResult {
 
 	fmt.Printf("Total results: %d\n", len(*codeResults))
 
-	for i, codeResult := range *codeResults {
+	for i, codeResult := range *codeResults { //TODO you can just append I guess
 		searchResults[i] = pages.SearchResult{
 			Name:       codeResult.Name,
 			Path:       codeResult.Path,
