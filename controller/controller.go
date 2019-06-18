@@ -20,10 +20,10 @@ type Controller struct {
 func (c Controller) IndexPageHandler(w http.ResponseWriter, r *http.Request) {
 	keyword := getQueryParam(r, "search")
 	language := getQueryParam(r, "language")
-	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	errorHandler:= func(e error) {
+	errorHandler := func(e error) {
 		handleError(w, e)
 	}
 
@@ -54,10 +54,10 @@ func (c Controller) IndexPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleError(w http.ResponseWriter, e error) {
-	if e != nil {
+	if e != nil {	//TODO to me it feels more standard to have the condition outside, even though at the first peak it might look like it clutters the code
 		log.Print(errors.WithStack(e))
-		w.WriteHeader(500)
-		fmt.Fprint(w, "Oops, something went wrong")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Oops, something went wrong") //TODO as this is a a Write() it can also fail here, unfortunately
 	}
 }
 
@@ -66,7 +66,7 @@ func convertResults(codeResults *[]github.CodeResult) []pages.SearchResult {
 
 	fmt.Printf("Total results: %d\n", len(*codeResults))
 
-	for i, codeResult := range *codeResults {
+	for i, codeResult := range *codeResults { //TODO you can just append I guess
 		searchResults[i] = pages.SearchResult{
 			Name:       codeResult.Name,
 			Path:       codeResult.Path,

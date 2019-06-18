@@ -14,7 +14,7 @@ type SortByRepositoryScore struct {
 
 //sorts results based on repository score
 func (s SortByRepositoryScore) Apply(ctx context.Context, results *[]github.CodeResult) *[]github.CodeResult {
-	numberOfScoredResults := smallerOf(s.MaxRequests, len(*results))
+	numberOfScoredResults := smaller(s.MaxRequests, len(*results))
 
 	scores := make([]int, numberOfScoredResults)
 
@@ -22,7 +22,7 @@ func (s SortByRepositoryScore) Apply(ctx context.Context, results *[]github.Code
 		scores[i] = s.getRepositoryScore(ctx, (*results)[i].Repository)
 	}
 
-	var sorter = ByScoreFromHighest{
+	var sorter = byScoreFromHighest{
 		Results: *results,
 		Scores:  scores,
 	}
@@ -43,30 +43,30 @@ func (s SortByRepositoryScore) getRepositoryScore(ctx context.Context, repo *git
 		return 0
 	}
 
-	score := (*repository).GetWatchersCount()
+	score := repository.GetWatchersCount() //TODO get actually already returns a pointer, so there's no need for it here
 
 	return score
 }
 
-func smallerOf(int1 int, int2 int) int {
+func smaller(int1 int, int2 int) int {
 	if int1 <= int2 {
 		return int1
 	}
 	return int2
 }
 
-type ByScoreFromHighest struct {
+type byScoreFromHighest struct { //TODO not sure if there is a reason to export this struct
 	Results []github.CodeResult
 	Scores  []int
 }
 
-func (a ByScoreFromHighest) Len() int {
+func (a byScoreFromHighest) Len() int {
 	return len(a.Scores)
 }
-func (a ByScoreFromHighest) Swap(i, j int) {
+func (a byScoreFromHighest) Swap(i, j int) {
 	a.Results[i], a.Results[j] = a.Results[j], a.Results[i]
 	a.Scores[i], a.Scores[j] = a.Scores[j], a.Scores[i]
 }
-func (a ByScoreFromHighest) Less(i, j int) bool {
+func (a byScoreFromHighest) Less(i, j int) bool {
 	return a.Scores[i] > a.Scores[j]
 }
