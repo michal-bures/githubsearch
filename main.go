@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/joho/godotenv"
-	"githubsearch/controller"
-	"githubsearch/searcher"
+	"github.com/michal-bures/githubsearch/controller"
+	"github.com/michal-bures/githubsearch/searcher"
 	"log"
 )
 import "net/http"
